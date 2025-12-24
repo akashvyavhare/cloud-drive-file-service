@@ -40,7 +40,11 @@ public class FileController {
 	public ResponseEntity<?>  upload( @RequestPart( value = "data" ) String data, @RequestPart("file") MultipartFile file) {
 		try {
 			UserFile userFile = mapper.readValue(data,UserFile.class);
-			return ResponseEntity.status(HttpStatus.OK).body(fileService.uploadUserFile(userFile.getUserId()==null?"nullUser":userFile.getUserId(), file));
+			if(userFile.getUserId()==null) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("user Id Is empty");
+			}
+			UserFile saveUserFile = fileService.uploadUserFile(userFile.getUserId(), file);
+			return ResponseEntity.status(HttpStatus.OK).body(saveUserFile);
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 			e.printStackTrace();
