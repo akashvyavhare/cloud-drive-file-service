@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +21,8 @@ import com.clouddrive.model.UserFile;
 import com.clouddrive.service.FileService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.websocket.server.PathParam;
+
 @RestController
 @RequestMapping("/file")
 public class FileController {
@@ -30,10 +33,9 @@ public class FileController {
 	@Autowired
 	private ObjectMapper mapper;
 	
-	@GetMapping("/list-files")
-	public List<String> getAllFiles(){
-		fileService.listAllFiles("");
-		return new ArrayList<String>();
+	@GetMapping("/list-files/user/{id}")
+	public List<UserFile> getAllFiles(@PathVariable("id") String userId){
+		return fileService.listAllFiles(userId);
 	}
 	
 	@PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

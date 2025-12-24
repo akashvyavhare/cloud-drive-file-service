@@ -66,7 +66,7 @@ public class FileServiceImpl implements FileService {
 
 	@Override
 	public List<UserFile> listAllFiles(String userID) {
-		return fileRepository.findAll();
+		return fileRepository.findByUserId(userID);
 	}
 
 	@Override
