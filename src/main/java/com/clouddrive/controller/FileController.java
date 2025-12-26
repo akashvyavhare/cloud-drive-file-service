@@ -1,9 +1,13 @@
 package com.clouddrive.controller;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.management.RuntimeErrorException;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +25,11 @@ import com.clouddrive.model.UserFile;
 import com.clouddrive.service.FileService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.websocket.server.PathParam;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 @RestController
 @RequestMapping("/file")
@@ -52,6 +60,33 @@ public class FileController {
 			e.printStackTrace();
 		}
 	    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Fail To upload Files");
+	}
+	
+	@GetMapping("/download/user/{userId}/file/{userFileId}")
+	public void downloadFile(@PathVariable("userId") String userId, @PathVariable("userFileId") String userFileId, HttpServletResponse response) throws IOException {
+		try {
+			UserFile userFile = fileService.getUserFileBy(userId, userFileId);
+			if(userFile==null) {
+				response.sendError(HttpStatus.NOT_FOUND.value(), "File Not Found..!");
+				return;
+			}
+			ResponseInputStream<GetObjectResponse> downloadFileStream = fileService.downloadFileStream(userFileId);
+			
+			response.setStatus(HttpStatus.OK.value());
+			response.setContentType("application/octet-stream");
+			response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + userFile.getFileName() + "\"");
+			
+			byte[] buffer= new byte[8024];
+			int byteRead;
+			ServletOutputStream outputStream = response.getOutputStream();
+			while((byteRead = downloadFileStream.read(buffer))!=-1) {
+				outputStream.write(buffer,0,byteRead);
+			}
+		} catch (Exception e) {
+			System.out.println(e);
+			response.sendError(500, "Something went Wrong..!");
+		}
+		
 	}
 
 

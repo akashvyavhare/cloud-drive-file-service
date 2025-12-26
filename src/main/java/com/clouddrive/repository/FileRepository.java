@@ -11,5 +11,7 @@ import java.util.List;
 public interface FileRepository extends MongoRepository<UserFile, String>{
 	
 	List<UserFile> findByUserId(String userId);
+	
+	UserFile findByIdAndUserId(String userFileId, String userId );
 
 }
